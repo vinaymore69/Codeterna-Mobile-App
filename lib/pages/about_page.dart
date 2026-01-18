@@ -239,101 +239,118 @@ class _AboutPageState extends State<AboutPage> with TickerProviderStateMixin {
             index: 0,
           ),
           const SizedBox(height: 16),
-          _buildInfoCard(
-            icon: Icons.remove_red_eye_rounded,
-            title: 'Vision',
-            description:
-            'To be the most trusted technology partner, recognized globally for excellence, innovation, and client success.',
-            gradient: LinearGradient(
-              colors: [
-                AppColors.cyan,
-                AppColors.cyan.withOpacity(0.7),
-              ],
-            ),
-            index: 1,
-          ),
+          
+
+         _buildInfoCard(
+  icon: Icons.remove_red_eye_rounded,
+  title: 'Vision',
+  description:
+      'To be the most trusted technology partner, recognized globally for excellence, innovation, and client success.',
+  gradient: LinearGradient(
+    colors: [
+      AppColors.cyan,
+      AppColors.cyan.withOpacity(0.7),
+    ],
+  ),
+  index: 1,
+  isOutline: true, // new flag
+),
+
         ],
       ),
     );
   }
 
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String title,
-    required String description,
-    required Gradient gradient,
-    required int index,
-  }) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 800 + (index * 200)),
-      curve: Curves.easeOutBack,
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value.clamp(0.0, 1.0),
-          child: Transform.translate(
-            offset: Offset(50 * (1 - value), 0),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: gradient,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
+Widget _buildInfoCard({
+  required IconData icon,
+  required String title,
+  required String description,
+  required Gradient gradient,
+  required int index,
+  bool isOutline = false,
+}) {
+  final bool isVision = index == 1;
+
+  return TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0.0, end: 1.0),
+    duration: Duration(milliseconds: 800 + (index * 200)),
+    curve: Curves.easeOutBack,
+    builder: (context, value, child) {
+      return Opacity(
+        opacity: value.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(50 * (1 - value), 0),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isVision ? AppColors.white : null,
+              gradient: isVision ? null : gradient,
+              borderRadius: BorderRadius.circular(24),
+              border: isVision
+                  ? Border.all(color: AppColors.primary, width: 1.5)
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isVision
+                        ? AppColors.primary.withOpacity(0.1)
+                        : AppColors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                ],
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: AppColors.white,
-                      size: 28,
-                    ),
+                  child: Icon(
+                    icon,
+                    color: isVision ? AppColors.primary : AppColors.white,
+                    size: 28,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.white,
-                          ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color:
+                              isVision ? AppColors.primary : AppColors.white,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          description,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.white.withOpacity(0.95),
-                            height: 1.5,
-                          ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isVision
+                              ? AppColors.primary
+                              : AppColors.white.withOpacity(0.95),
+                          height: 1.5,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
+
 
   Widget _buildNumbersSection() {
     return Container(
@@ -538,7 +555,7 @@ class _AboutPageState extends State<AboutPage> with TickerProviderStateMixin {
                   AppColors.cyan,
                 ],
               ),
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(5),
             ),
             child: Column(
               children: [

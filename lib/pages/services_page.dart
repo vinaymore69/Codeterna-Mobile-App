@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 
 class ServicesPage extends StatefulWidget {
-  const ServicesPage({super.key});
+  final Function(int)? onNavigate;
+  
+  const ServicesPage({super.key, this.onNavigate});
 
   @override
   State<ServicesPage> createState() => _ServicesPageState();
@@ -764,7 +766,9 @@ class _ServicesPageState extends State<ServicesPage> with TickerProviderStateMix
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    widget.onNavigate?.call(4); // Navigate to Contact page
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: AppColors.white,

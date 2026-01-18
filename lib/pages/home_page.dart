@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final Function(int)? onNavigate;
+  
+  const HomePage({super.key, this.onNavigate});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -14,7 +16,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late AnimationController _staggerController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -47,9 +48,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _staggerController, curve: Curves.elasticOut),
-    );
 
     _controller.forward();
     _textController.forward();
@@ -115,7 +113,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     position: _slideAnimation,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         _buildAnimatedBadge(),
                         const SizedBox(height: 20),
@@ -254,7 +252,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         return Transform.scale(
           scale: value,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              widget.onNavigate?.call(4); // Navigate to Contact page
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.yellow,
               foregroundColor: AppColors.dark,
@@ -859,7 +859,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      widget.onNavigate?.call(4); // Navigate to Contact page
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.white,
                       foregroundColor: AppColors.primary,

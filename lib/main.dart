@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/home_page.dart';
 import 'pages/about_page.dart';
 import 'pages/contact_page.dart';
 import 'pages/services_page.dart';  // Make sure this file exists in your pages folder
-// import 'pages/projects_page.dart';
+import 'pages/projects_page.dart';
+import 'pages/welcome_screen.dart';
 import 'utils/colors.dart';
 
 void main() {
@@ -36,8 +39,64 @@ class CodeternaApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MainScreen(),
+      home: const AppWrapper(),
     );
+  }
+}
+
+class AppWrapper extends StatefulWidget {
+  const AppWrapper({super.key});
+
+  @override
+  State<AppWrapper> createState() => _AppWrapperState();
+}
+
+class _AppWrapperState extends State<AppWrapper> {
+  bool _isFirstLaunch = true;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFirstLaunch();
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenWelcome = prefs.getBool('hasSeenWelcome') ?? false;
+    
+    setState(() {
+      _isFirstLaunch = !hasSeenWelcome;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _completeWelcome() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasSeenWelcome', true);
+    
+    setState(() {
+      _isFirstLaunch = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: AppColors.primary,
+          ),
+        ),
+      );
+    }
+
+    if (_isFirstLaunch) {
+      return WelcomeScreen(onComplete: _completeWelcome);
+    }
+
+    return const MainScreen();
   }
 }
 
@@ -48,31 +107,21 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateMixin {
+class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-  late AnimationController _animationController;
   final PageController _pageController = PageController(initialPage: 0);
+  final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
 
-  final List<Widget> _pages = [
-    const HomePage(),
-    const ServicesPage(),  // This is now properly imported
-    const PlaceholderPage(title: 'Projects', icon: Icons.work_rounded),
+  List<Widget> get _pages => [
+    HomePage(onNavigate: _onNavItemTapped),
+    ServicesPage(onNavigate: _onNavItemTapped),
+    ProjectsPage(onNavigate: _onNavItemTapped),
     const AboutPage(),
     const ContactPage(),
   ];
 
   @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-  }
-
-  @override
   void dispose() {
-    _animationController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -81,14 +130,13 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
     setState(() {
       _currentIndex = index;
     });
-    _animationController.forward(from: 0);
   }
 
   void _onNavItemTapped(int index) {
     _pageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+      curve: Curves.easeInOutCubic,
     );
   }
 
@@ -101,74 +149,23 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
         physics: const BouncingScrollPhysics(),
         children: _pages,
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(0, Icons.home_rounded, 'Home'),
-                _buildNavItem(1, Icons.design_services_rounded, 'Services'),
-                _buildNavItem(2, Icons.work_rounded, 'Projects'),
-                _buildNavItem(3, Icons.info_rounded, 'About'),
-                _buildNavItem(4, Icons.contact_mail_rounded, 'Contact'),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final isSelected = _currentIndex == index;
-    return GestureDetector(
-      onTap: () => _onNavItemTapped(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(
-          horizontal: isSelected ? 16 : 12,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                icon,
-                color: isSelected ? AppColors.primary : AppColors.grey,
-                size: isSelected ? 26 : 24,
-              ),
-            ),
-            const SizedBox(height: 4),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 300),
-              style: TextStyle(
-                color: isSelected ? AppColors.primary : AppColors.grey,
-                fontSize: isSelected ? 11.5 : 11,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
-              child: Text(label),
-            ),
-          ],
-        ),
+      bottomNavigationBar: CurvedNavigationBar(
+        key: _bottomNavigationKey,
+        index: _currentIndex,
+        height: 65.0,
+        items: <Widget>[
+          Icon(Icons.home_rounded, size: 28, color: AppColors.white),
+          Icon(Icons.design_services_rounded, size: 28, color: AppColors.white),
+          Icon(Icons.work_rounded, size: 28, color: AppColors.white),
+          Icon(Icons.info_rounded, size: 28, color: AppColors.white),
+          Icon(Icons.contact_mail_rounded, size: 28, color: AppColors.white),
+        ],
+        color: AppColors.primary,
+        buttonBackgroundColor: AppColors.primary,
+        backgroundColor: Colors.transparent,
+        animationCurve: Curves.easeInOutCubic,
+        animationDuration: const Duration(milliseconds: 400),
+        onTap: _onNavItemTapped,
       ),
     );
   }
@@ -176,20 +173,20 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
 
 // Placeholder page for pages that aren't created yet
 class PlaceholderPage extends StatelessWidget {
-  final String title;
+  final String title; 
   final IconData icon;
 
   const PlaceholderPage({
     super.key,
     required this.title,
     required this.icon,
-  });
-
+  }); 
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: BoxDecoration( 
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,

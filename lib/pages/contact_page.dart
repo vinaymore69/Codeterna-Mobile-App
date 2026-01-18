@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../utils/colors.dart';
 
 class ContactPage extends StatefulWidget {
@@ -575,7 +574,7 @@ class _ContactPageState extends State<ContactPage> with TickerProviderStateMixin
           _buildContactCard(
             icon: Icons.phone,
             title: 'Phone',
-            subtitle: '+1 (555) 123-4567',
+            subtitle: '+91 7021512319',
             color: AppColors.primary,
             index: 0,
           ),
@@ -583,7 +582,7 @@ class _ContactPageState extends State<ContactPage> with TickerProviderStateMixin
           _buildContactCard(
             icon: Icons.email,
             title: 'Email',
-            subtitle: 'hello@codeterna.com',
+            subtitle: 'enquiry@codeterna.com',
             color: AppColors.cyan,
             index: 1,
           ),
@@ -591,7 +590,7 @@ class _ContactPageState extends State<ContactPage> with TickerProviderStateMixin
           _buildContactCard(
             icon: Icons.location_on,
             title: 'Address',
-            subtitle: '123 Tech Street, Silicon Valley',
+            subtitle: 'Horizon Towers, Randade Rd. Dadar West',
             color: AppColors.yellow,
             index: 2,
           ),
