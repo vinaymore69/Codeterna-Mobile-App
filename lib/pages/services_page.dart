@@ -46,6 +46,7 @@ class _ServicesPageState extends State<ServicesPage> with TickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 100),
         child: Column(
           children: [
             _buildHeroSection(),
@@ -83,14 +84,16 @@ class _ServicesPageState extends State<ServicesPage> with TickerProviderStateMix
               _buildLogo(),
               const SizedBox(height: 40),
               Expanded(
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                         TweenAnimationBuilder<double>(
                           tween: Tween(begin: 0.0, end: 1.0),
                           duration: const Duration(milliseconds: 800),
@@ -191,10 +194,12 @@ class _ServicesPageState extends State<ServicesPage> with TickerProviderStateMix
                             );
                           },
                         ),
+                        const SizedBox(height: 20), // Extra padding at bottom
                       ],
                     ),
                   ),
                 ),
+              ),
               ),
             ],
           ),

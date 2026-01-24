@@ -135,7 +135,7 @@ class _MainScreenState extends State<MainScreen> {
   void _onNavItemTapped(int index) {
     _pageController.animateToPage(
       index,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOutCubic,
     );
   }
@@ -143,29 +143,32 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: PageView(
         controller: _pageController,
         onPageChanged: _onPageChanged,
         physics: const BouncingScrollPhysics(),
         children: _pages,
       ),
-      bottomNavigationBar: CurvedNavigationBar(
-        key: _bottomNavigationKey,
-        index: _currentIndex,
-        height: 65.0,
-        items: <Widget>[
-          Icon(Icons.home_rounded, size: 28, color: AppColors.white),
-          Icon(Icons.design_services_rounded, size: 28, color: AppColors.white),
-          Icon(Icons.work_rounded, size: 28, color: AppColors.white),
-          Icon(Icons.info_rounded, size: 28, color: AppColors.white),
-          Icon(Icons.contact_mail_rounded, size: 28, color: AppColors.white),
-        ],
-        color: AppColors.primary,
-        buttonBackgroundColor: AppColors.primary,
-        backgroundColor: Colors.transparent,
-        animationCurve: Curves.easeInOutCubic,
-        animationDuration: const Duration(milliseconds: 400),
-        onTap: _onNavItemTapped,
+      bottomNavigationBar: SafeArea(
+        child: CurvedNavigationBar(
+          key: _bottomNavigationKey,
+          index: _currentIndex,
+          height: 75.0,
+          items: <Widget>[
+            Icon(Icons.home_rounded, size: 28, color: AppColors.white),
+            Icon(Icons.design_services_rounded, size: 28, color: AppColors.white),
+            Icon(Icons.work_rounded, size: 28, color: AppColors.white),
+            Icon(Icons.info_rounded, size: 28, color: AppColors.white),
+            Icon(Icons.contact_mail_rounded, size: 28, color: AppColors.white),
+          ],
+          color: AppColors.primary,
+          buttonBackgroundColor: AppColors.primary,
+          backgroundColor: Colors.transparent,
+          animationCurve: Curves.easeInOutCubic,
+          animationDuration: const Duration(milliseconds: 700),
+          onTap: _onNavItemTapped,
+        ),
       ),
     );
   }

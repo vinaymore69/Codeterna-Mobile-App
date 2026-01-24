@@ -53,6 +53,7 @@ class _ProjectsPageState extends State<ProjectsPage> with TickerProviderStateMix
         child: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 100),
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
@@ -288,7 +289,7 @@ class _ProjectsPageState extends State<ProjectsPage> with TickerProviderStateMix
                         padding: const EdgeInsets.all(12.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,6 +326,7 @@ class _ProjectsPageState extends State<ProjectsPage> with TickerProviderStateMix
                                 ),
                               ],
                             ),
+                            const Spacer(),
                             Row(
                               children: [
                                 Text(

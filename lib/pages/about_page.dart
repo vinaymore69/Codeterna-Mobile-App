@@ -43,6 +43,7 @@ class _AboutPageState extends State<AboutPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 100),
         child: Column(
           children: [
             _buildHeroSection(),
@@ -82,14 +83,16 @@ class _AboutPageState extends State<AboutPage> with TickerProviderStateMixin {
               _buildLogo(),
               const SizedBox(height: 10),
               Expanded(
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -138,6 +141,7 @@ class _AboutPageState extends State<AboutPage> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
+              ),
               ),
             ],
           ),

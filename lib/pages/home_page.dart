@@ -69,6 +69,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 100),
         child: Column(
           children: [
             _buildHeroSection(),
@@ -107,17 +108,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               _buildLogo(),
               const SizedBox(height: 40),
               Expanded(
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        _buildAnimatedBadge(),
-                        const SizedBox(height: 20),
-                        _buildAnimatedHeading(),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          _buildAnimatedBadge(),
+                          const SizedBox(height: 20),
+                          _buildAnimatedHeading(),
                         const SizedBox(height: 16),
                         _buildAnimatedSubtext(),
                         const SizedBox(height: 24),
@@ -126,8 +129,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         _buildCheckItem('Empower Your Business with the Latest Tech', 1),
                         const SizedBox(height: 32),
                         _buildAnimatedButton(),
+                        const SizedBox(height: 20), // Extra padding at bottom
                       ],
                     ),
+                  ),
                   ),
                 ),
               ),

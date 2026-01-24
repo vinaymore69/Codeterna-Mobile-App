@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../utils/colors.dart';
@@ -14,6 +15,7 @@ class _ContactPageState extends State<ContactPage> with TickerProviderStateMixin
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
   final _messageController = TextEditingController();
 
   late AnimationController _controller;
@@ -57,6 +59,7 @@ class _ContactPageState extends State<ContactPage> with TickerProviderStateMixin
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _addressController.dispose();
     _messageController.dispose();
     super.dispose();
   }
@@ -64,31 +67,85 @@ class _ContactPageState extends State<ContactPage> with TickerProviderStateMixin
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Dismiss keyboard
+    FocusScope.of(context).unfocus();
+
     setState(() => _isLoading = true);
 
     try {
-      // Replace with your actual PHP endpoint URL
-      final response = await http.post(
-        Uri.parse('https://your-domain.com/send_mail.php'),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {
-          'name': _nameController.text,
-          'email': _emailController.text,
-          'phone': _phoneController.text,
-          'message': _messageController.text,
+      final url = 'https://codeterna.com/vinay/backend/api/contact.php';
+      
+      // Prepare data
+      final data = {
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'address': _addressController.text.trim(),
+        'message': _messageController.text.trim(),
+      };
+
+      print('==================== FORM SUBMISSION ====================');
+      print('URL: $url');
+      print('Data being submitted:');
+      print('  Name: ${data['name']}');
+      print('  Email: ${data['email']}');
+      print('  Phone: ${data['phone']}');
+      print('  Address: ${data['address']}');
+      print('  Message: ${data['message']}');
+      print('========================================================');
+
+      // Try JSON format first (most common for modern APIs)
+      print('\n[Attempt 1] Sending as JSON...');
+      var response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(data),
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          print('[ERROR] Request timeout!');
+          throw Exception('Request timeout - please check your internet connection');
         },
       );
 
-      if (response.statusCode == 200) {
-        setState(() {
-          _showSuccess = true;
-          _isLoading = false;
-        });
+      print('[Response] Status Code: ${response.statusCode}');
+      print('[Response] Body: ${response.body}');
+
+      // If JSON fails with 422, try form-encoded format
+      if (response.statusCode == 422) {
+        print('\n[Attempt 2] JSON failed with 422, retrying with form-encoded...');
+        response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json',
+          },
+          body: data,
+        ).timeout(const Duration(seconds: 30));
+        
+        print('[Response] Status Code: ${response.statusCode}');
+        print('[Response] Body: ${response.body}');
+      }
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('[SUCCESS] Form submitted successfully!');
+        print('========================================================\n');
+        if (mounted) {
+          setState(() => _showSuccess = true);
+        }
 
         // Clear form
         _nameController.clear();
         _emailController.clear();
         _phoneController.clear();
+        _addressController.clear();
         _messageController.clear();
 
         // Hide success message after 3 seconds
@@ -98,15 +155,64 @@ class _ContactPageState extends State<ContactPage> with TickerProviderStateMixin
           }
         });
       } else {
-        throw Exception('Failed to send message');
+        // Parse error message from server response
+        print('[ERROR] Request failed with status ${response.statusCode}');
+        String errorMessage = 'Server error (${response.statusCode})';
+        try {
+          final responseBody = jsonDecode(response.body);
+          print('[ERROR] Parsed JSON response: $responseBody');
+          
+          // Check for validation errors with specific field messages
+          if (responseBody['errors'] != null && responseBody['errors'] is Map) {
+            final errors = responseBody['errors'] as Map;
+            // Combine all field-specific errors
+            final errorMessages = errors.values.map((e) => e.toString()).toList();
+            errorMessage = errorMessages.join('\n');
+          } else if (responseBody['message'] != null) {
+            errorMessage = responseBody['message'];
+          } else if (responseBody['error'] != null) {
+            errorMessage = responseBody['error'];
+          }
+        } catch (parseError) {
+          print('[ERROR] Failed to parse response as JSON: $parseError');
+          // If response is not JSON, use the raw body if it's short
+          if (response.body.isNotEmpty && response.body.length < 100) {
+            errorMessage = response.body;
+          }
+        }
+        print('[ERROR] Final error message: $errorMessage');
+        print('========================================================\n');
+        throw Exception(errorMessage);
       }
     } catch (e) {
-      setState(() => _isLoading = false);
+      print('[EXCEPTION] Caught exception: $e');
+      print('[EXCEPTION] Exception type: ${e.runtimeType}');
+      print('========================================================\n');
+      
       if (mounted) {
+        setState(() => _isLoading = false);
+        
+        String errorMessage = 'Failed to send message';
+        if (e.toString().contains('SocketException') || e.toString().contains('NetworkException')) {
+          errorMessage = 'No internet connection. Please check your network.';
+        } else if (e.toString().contains('timeout')) {
+          errorMessage = 'Request timeout. Please try again.';
+        } else if (e.toString().contains('Exception:')) {
+          errorMessage = e.toString().replaceAll('Exception: ', '');
+        } else {
+          errorMessage = 'Error: ${e.toString()}';
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text(errorMessage),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'RETRY',
+              textColor: Colors.white,
+              onPressed: _submitForm,
+            ),
           ),
         );
       }
@@ -159,14 +265,16 @@ class _ContactPageState extends State<ContactPage> with TickerProviderStateMixin
 
               // Hero Content
               Expanded(
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                         // Badge
                         TweenAnimationBuilder<double>(
                           tween: Tween(begin: 0.0, end: 1.0),
@@ -282,11 +390,12 @@ class _ContactPageState extends State<ContactPage> with TickerProviderStateMixin
                   ),
                 ),
               ),
+              ),
             ],
           ),
         ),
       ),
-    );
+    ); 
   }
 
   Widget _buildLogo() {
@@ -405,6 +514,14 @@ class _ContactPageState extends State<ContactPage> with TickerProviderStateMixin
                     ),
                     const SizedBox(height: 16),
                     _buildAnimatedTextField(
+                      controller: _addressController,
+                      label: 'Address (Optional)',
+                      icon: Icons.location_on_outlined,
+                      maxLines: 2,
+                      delay: 250,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildAnimatedTextField(
                       controller: _messageController,
                       label: 'Your Message',
                       icon: Icons.message_outlined,
@@ -413,6 +530,9 @@ class _ContactPageState extends State<ContactPage> with TickerProviderStateMixin
                       validator: (value) {
                         if (value?.isEmpty ?? true) {
                           return 'Please enter your message';
+                        }
+                        if (value!.trim().length < 10) {
+                          return 'Message must be at least 10 characters';
                         }
                         return null;
                       },
