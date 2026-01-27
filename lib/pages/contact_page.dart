@@ -395,7 +395,7 @@ class _ContactPageState extends State<ContactPage> with TickerProviderStateMixin
           ),
         ),
       ),
-    ); 
+    );
   }
 
   Widget _buildLogo() {
